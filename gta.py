@@ -57,13 +57,10 @@ class Goal:
         return (self._get_num_of_steps_completed()*1.0 / self._get_total_num_of_steps()) * 100
     
     def print_details(self):
-        print "=========================================================="
-        print "id: " + self.id
-        print "name: " + self.name
-        print "description: " + self.description
-        print "creation_date: " + self.creation_date
-        print "cost: " + str(self.get_total_cost_in_hours())
-        print "progress: " + str(self.get_progress_percentage()) + "%" 
+        print "\n=========================================================="
+        print "Goal name: " + self.name,
+        print " cost: " + str(self.get_total_cost_in_hours()),
+        print " progress: " + str(self.get_progress_percentage()) + "%" 
         
         if len(self.steps) != 0:
             print "Steps: "
@@ -71,7 +68,7 @@ class Goal:
             print "------------------------------------------------------"
             step.print_details()
             
-        print "=========================================================="
+        print "==========================================================\n"
             
     def put_step(self, step):
         self.steps.append(step)
@@ -127,12 +124,9 @@ class Step:
         self.status = StepStatus.COMPLETE
     
     def print_details(self):
-        print "id: " + self.id
-        print "name: " + self.name
-        print "description: " + self.description
-        print "creation_date: " + self.creation
-        print "cost: " + str(self.cost_in_hours)
-        print "status: " + self.status.name
+        print " " + self.name,
+        print " cost: " + str(self.cost_in_hours),
+        print " status: " + self.status.name
     
     @staticmethod
     def build_new_step(name, description, cost_in_hours):
@@ -245,7 +239,7 @@ class CommandLineInterface:
     def _show_progress_for_goals(self):
         #Iterates through each goal and shows progress for each one
         for goal in self.life.get_goals():
-            print "Goal " + goal.name + " has completed " + str(goal.get_progress_percentage())
+            print "Goal " + goal.name + " is " + str(goal.get_progress_percentage()) + "% complete"
     
     def _show_progress_for_categories(self):
         #Iterates through each goal and shows progress for each one
