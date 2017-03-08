@@ -323,7 +323,7 @@ class CommandLineInterface:
         print "Marking step "+ step_name + " in goal " + goal_name + " as INCOMPLETE"
         for goal in self.life.get_goals():
             if goal.name == goal_name:
-                goal.mark_step_incomplee(step_name)
+                goal.mark_step_incomplete(step_name)
         
     def main_menu_loop(self):
          # Keeps the program running so that use can interact
