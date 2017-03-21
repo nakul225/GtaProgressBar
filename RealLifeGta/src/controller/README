@@ -1,0 +1,18 @@
+You need to set PYTHONPATH to run this program from terminal.
+
+PYTHONPATH="/home/nakul/Documents/LiClipseWorkspace/RealLifeGta:$PYTHONPATH"
+export PYTHONPATH
+
+cd /home/nakul/Documents/LiClipseWorkspace/RealLifeGta/src/controller
+python ./__init__.py
+
+alias gta="python <PATH_TO_YOUR_WORKSPACE>/src/controller/__init__.py"
+
+=============================================================================
+
+After the setup mentioned above, you will be able to run commands as :
+
+> gta gg
+> gta pg test_goal goal_description
+> gta msc test_goal step1
+> gta gps
