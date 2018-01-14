@@ -14,3 +14,5 @@ class Operation(Enum):
     GET_PROGRESS_SUMMARY = 'gps'
     MARK_STEP_COMPLETE = 'msc'
     MARK_STEP_INCOMPLETE = 'msi'
+    PUT_CATEGORY = "pc"
+    GET_CATEGORIES = "gc"

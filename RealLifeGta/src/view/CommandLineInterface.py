@@ -8,6 +8,7 @@ import sys
 from src.models.Operation import Operation
 from src.models.Goal import Goal
 from src.models.Step import Step
+from src.models.Category import Category
 
 class CommandLineInterface:
     # Implementation that provides cmd line input/response interaction
@@ -17,6 +18,8 @@ class CommandLineInterface:
     def _show_usage(self):
         print "\n==========================================================="
         print "Supported commands are:"
+        print "Put Categories: \n\t pc <lowercase_category_name_without_spaces>"
+        print "Get Categories: \n\t gc"
         print "Put Goals: \n\t pg <lowercase_goal_name_without_spaces> <lowercase_description_without_spaces>"
         print "Put Step: \n\t ps <goal_name> <name> <cost_in_hours>"
         print "Get Goals: \n\t gg"
@@ -60,6 +63,10 @@ class CommandLineInterface:
             self.mark_step_complete(lowercase_command)
         elif operation == Operation.MARK_STEP_INCOMPLETE.value:
             self.mark_step_incomplete(lowercase_command)
+        elif operation == Operation.PUT_CATEGORY.value:
+            self.put_category(lowercase_command)
+        elif operation == Operation.GET_CATEGORIES.value:
+            self.get_categories(lowercase_command)
         else:
             print "Operation not recognized. Please see usage:"
             self._show_usage()
@@ -67,6 +74,28 @@ class CommandLineInterface:
 
     def show_progress_summary(self):
         self._show_progress()
+
+    def put_category(self, command):
+        #PutCategory category_name
+        tokens=command.split()
+        name=tokens[1].lower()
+        category=Category.build_new_category(name)
+        self.life.put_category(category)
+
+    def get_categories(self, command):
+        # GetCategories
+        print "You have following categories in the system:"
+        for c in self.life.get_categories():
+            c.print_details()
+
+    def add_goal_to_category(self, command):
+        pass
+
+    def remove_goal_from_category(self, command):
+        pass
+
+    def remove_category(self, command):
+        pass
 
     def put_goal(self, command):
         #PutGoal <lowercase_goal_name_without_spaces> <lowercase_description_without_spaces>
@@ -138,5 +167,5 @@ class CommandLineInterface:
             actual_command = " ".join(sys.argv[1:])
             self._process_command(actual_command)
         except:
-            print "Exception raised while dealing with input command"
+            print "Exception raised while dealing with input command: "+traceback.print_exc(file=sys.stdout)
             self._show_usage()

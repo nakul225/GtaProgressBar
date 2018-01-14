@@ -15,7 +15,7 @@ class Life:
         else:
             self.goals.append(goal)
 
-    def add_category(self, category):
+    def put_category(self, category):
         self.categories.append(category)
 
     def get_goals(self):
