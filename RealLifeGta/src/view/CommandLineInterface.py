@@ -46,6 +46,10 @@ class CommandLineInterface:
 
     def _process_command(self, command):
         lowercase_command = command.lower()
+	if command == "":
+		self._show_usage()
+	 	return
+
         operation = lowercase_command.split()[0]
         continue_program = True
 
