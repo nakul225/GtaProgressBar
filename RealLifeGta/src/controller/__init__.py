@@ -9,10 +9,11 @@ from src.view.CommandLineInterface import CommandLineInterface
 def main():
     #initialize
     # Assumes Linux setup
-    cmd="whoami 2>/dev/null >/tmp/username"
-    username=subprocess.check_output("whoami",shell=True).split()
+    cmd="pushd .; cd ~/Documents; pwd 2>/dev/null >/tmp/life_directory; popd 2>&1 > /dev/null"
+    output=subprocess.check_output(cmd,shell=True).split()
+    documents_directory_path=subprocess.check_output("cat /tmp/life_directory",shell=True).split()[0]
 
-    life_directory = "/home/"+username[0]+"/Documents/RealLifeGTA/"
+    life_directory = documents_directory_path+"/RealLifeGTA/"
     life_filename="gta.data"
     life_complete_path=life_directory+life_filename
     try:
