@@ -23,6 +23,7 @@ class CommandLineInterface:
         print "Put Goals: \n\t pg <lowercase_goal_name_without_spaces> <lowercase_description_without_spaces>"
         print "Put Step: \n\t ps <goal_name> <name> <cost_in_hours>"
         print "Get Goals: \n\t gg"
+	print "Add Goal to Category: \n\t agc <lowercase_goal_name_without_space> <lowercase_category_name>"
         print "Mark Step Complete: \n\t msc <goal_name> <step_name>"
         print "Mark Step Incomplete: \n\t msi <goal_name> <step_name>"
         print "Get Progress Summary: \n\t gps"
@@ -71,6 +72,8 @@ class CommandLineInterface:
             self.put_category(lowercase_command)
         elif operation == Operation.GET_CATEGORIES.value:
             self.get_categories(lowercase_command)
+	elif operation == Operation.ADD_GOAL_TO_CATEGORY.value:
+	    self.add_goal_to_category(lowercase_command)
         else:
             print "Operation not recognized. Please see usage:"
             self._show_usage()
@@ -93,7 +96,11 @@ class CommandLineInterface:
             c.print_details()
 
     def add_goal_to_category(self, command):
-        pass
+        #AddGoalToCategory goal_name category_name
+	tokens = command.split()
+	goal_name=tokens[1].lower()
+	category_name=tokens[2].lower()
+	self.life.add_goal_to_category(goal_name, category_name)	
 
     def remove_goal_from_category(self, command):
         pass

@@ -16,3 +16,4 @@ class Operation(Enum):
     MARK_STEP_INCOMPLETE = 'msi'
     PUT_CATEGORY = "pc"
     GET_CATEGORIES = "gc"
+    ADD_GOAL_TO_CATEGORY = "agc"

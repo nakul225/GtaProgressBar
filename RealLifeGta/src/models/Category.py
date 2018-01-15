@@ -17,8 +17,8 @@ class Category:
     def _get_all_goals(self):
         return self.goals
 
-    def add_goals(self, goal):
-        return self.goals.extend(goal)
+    def add_goal(self, goal):
+        return self.goals.append(goal)
 
     def remove_goal(self, goal):
         for g in self._get_all_goals():
@@ -41,7 +41,7 @@ class Category:
             print "Goals: "
         for goal in self.goals:
             print "------------------------------------------------------"
-            goal.print_details()
+            print goal.name
         print "==========================================================\n"
 
     @staticmethod
