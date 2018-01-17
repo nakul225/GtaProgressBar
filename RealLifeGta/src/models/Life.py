@@ -57,8 +57,6 @@ class Life:
 		if c.name == categoryname:
 			category_exists = True
 	
-	print ">>>> goalname:"+goalname
-	print ">>>> categoryname:"+categoryname
 	if not goal_exists and not category_exists:
 		print "Either goal or category doesn't exist, goal_exists:" + goal_exists + " and category_exists:" + category_exists
 	else:
@@ -70,7 +68,6 @@ class Life:
 
 		for c in self.categories:
 			if c.name == categoryname:
-				print ">> adding goalname: "+goal.name
 				c.add_goal(goal)
 
     @staticmethod

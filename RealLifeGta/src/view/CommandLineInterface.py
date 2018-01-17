@@ -43,7 +43,7 @@ class CommandLineInterface:
     def _show_progress_for_categories(self):
         #Iterates through each goal and shows progress for each one
         for category in self.life.get_categories():
-            print "Category " + category.name + "has completed " + str(category.get_progress_percentage())
+            print "Category " + category.name + " has completed " + str(category.get_progress_percentage())
 
     def _process_command(self, command):
         lowercase_command = command.lower()
@@ -115,6 +115,9 @@ class CommandLineInterface:
         description = elements[2].lower()
         goal = Goal.build_new_goal(name, description)
         self.life.put_goal(goal)
+
+    def remove_goal(self, command):
+        pass
         
     def get_goals(self, command):
         print "You have following goals in the system: "
@@ -137,6 +140,9 @@ class CommandLineInterface:
                 success=True
         if success == False:
             print "Specified goal not found!"
+
+    def remove_step(self, command):
+        pass
 
     def _show_usage_and_accept_user_input(self):
         # Show usage and accept user input

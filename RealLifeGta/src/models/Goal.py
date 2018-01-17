@@ -45,15 +45,20 @@ class Goal:
         return (self._get_num_of_steps_completed()*1.0 / self._get_total_num_of_steps()) * 100
 
     def print_details(self):
+	# count number of steps completed
+	complete=int(self.get_progress_percentage()/10)
+	remaining=10-complete
+	
         print "\n=========================================================="
         print "Goal name: " + self.name,
         print " cost: " + str(self.get_total_cost_in_hours()),
-        print " progress: " + str(self.get_progress_percentage()) + "%"
+        print " progress: " + str(self.get_progress_percentage()) + "%",
+        print "[" + "#"*complete + "_"*remaining + "]"
 
         if len(self.steps) != 0:
             print "Steps: "
         for step in self.steps:
-            print "------------------------------------------------------"
+            #print "------------------------------------------------------"
             step.print_details()
 
         print "==========================================================\n"
