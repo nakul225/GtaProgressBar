@@ -9,8 +9,8 @@ from src.view.CommandLineInterface import CommandLineInterface
 def main():
     #initialize
     # Assumes Linux setup
-    cmd="pushd .; cd ~/Documents; pwd 2>/dev/null >/tmp/life_directory; popd 2>&1 > /dev/null"
-    output=subprocess.check_output(cmd,shell=True).split()
+    cmd="cd ~/Documents; pwd 2>/dev/null >/tmp/life_directory; cd - > /dev/null"
+    #output=subprocess.check_output(cmd,shell=True).split()
     documents_directory_path=subprocess.check_output("cat /tmp/life_directory",shell=True).split()[0]
 
     life_directory = documents_directory_path+"/RealLifeGTA/"
