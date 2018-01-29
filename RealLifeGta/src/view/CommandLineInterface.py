@@ -20,10 +20,13 @@ class CommandLineInterface:
         print "Supported commands are:"
         print "Put Categories: \n\t pc <lowercase_category_name_without_spaces>"
         print "Get Categories: \n\t gc"
-        print "Put Goals: \n\t pg <lowercase_goal_name_without_spaces> <lowercase_description_without_spaces>"
+        print "Remove Categories: \n\t rc"
+        print "Put Goals: \n\t pg <lowercase_goal_name_without_spaces>"
+        print "Remove Goal: \n\t rg <lowercase_goal_name_without_spaces>"
         print "Put Step: \n\t ps <goal_name> <name> <cost_in_hours>"
         print "Get Goals: \n\t gg"
 	print "Add Goal to Category: \n\t agc <lowercase_goal_name_without_space> <lowercase_category_name>"
+        print "Remove Goal From Category: \n\t rgc <lowercase_goal_name_without_space> <lowercase_category_name>"
         print "Mark Step Complete: \n\t msc <goal_name> <step_name>"
         print "Mark Step Incomplete: \n\t msi <goal_name> <step_name>"
         print "Get Progress Summary: \n\t gps"
@@ -58,6 +61,8 @@ class CommandLineInterface:
             continue_program  = False
         elif operation == Operation.PUT_GOAL.value:
             self.put_goal(lowercase_command)
+        elif operation == Operation.REMOVE_GOAL.value:
+            self.remove_goal(lowercase_command)
         elif operation == Operation.GET_GOALS.value:
             self.get_goals(lowercase_command)
         elif operation == Operation.PUT_STEP.value:
@@ -70,10 +75,14 @@ class CommandLineInterface:
             self.mark_step_incomplete(lowercase_command)
         elif operation == Operation.PUT_CATEGORY.value:
             self.put_category(lowercase_command)
+        elif operation == Operation.REMOVE_CATEGORY.value:
+            self.remove_category(lowercase_command)
         elif operation == Operation.GET_CATEGORIES.value:
             self.get_categories(lowercase_command)
 	elif operation == Operation.ADD_GOAL_TO_CATEGORY.value:
 	    self.add_goal_to_category(lowercase_command)
+        elif operation == Operation.REMOVE_GOAL_FROM_CATEGORY.value:
+            self.remove_goal_from_category(lowercase_command)
         else:
             print "Operation not recognized. Please see usage:"
             self._show_usage()
@@ -91,9 +100,12 @@ class CommandLineInterface:
 
     def get_categories(self, command):
         # GetCategories
-        print "You have following categories in the system:"
-        for c in self.life.get_categories():
-            c.print_details()
+        if len(self.life.get_categories()) == 0:
+            print "You don't have any categories in the system"
+        else:
+            print "You have following categories in the system:"
+            for c in self.life.get_categories():
+                c.print_details()
 
     def add_goal_to_category(self, command):
         #AddGoalToCategory goal_name category_name
@@ -103,26 +115,38 @@ class CommandLineInterface:
 	self.life.add_goal_to_category(goal_name, category_name)	
 
     def remove_goal_from_category(self, command):
-        pass
+        elements = command.split()
+        goal_name = elements[1].lower()
+        category_name = elements[2].lower()
+        self.life.remove_goal_from_category(goal_name, category_name)
 
     def remove_category(self, command):
-        pass
+        #RemoveCategory <category_name>
+        tokens=command.split()
+        name=tokens[1].lower()
+        self.life.remove_category(name)
 
     def put_goal(self, command):
         #PutGoal <lowercase_goal_name_without_spaces> <lowercase_description_without_spaces>
         elements = command.split()
         name = elements[1].lower()
-        description = elements[2].lower()
+        description = "dummy_description"
         goal = Goal.build_new_goal(name, description)
         self.life.put_goal(goal)
 
     def remove_goal(self, command):
-        pass
+        #RemoveGoal <lowercase_goal_name_without_spaces>
+        elements = command.split()
+        name = elements[1].lower()
+        self.life.remove_goal(name)
         
     def get_goals(self, command):
-        print "You have following goals in the system: "
-        for goal in self.life.get_goals():
-            goal.print_details()
+        if len(self.life.get_goals()) == 0:
+            print "You don't have any goals in the system"
+        else:
+            print "You have following goals in the system: "
+            for goal in self.life.get_goals():
+                goal.print_details()
 
     def put_step(self, command):
         #PutStep <name> <description> <cost_in_hours> <name_of_goal>

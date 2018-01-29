@@ -20,9 +20,9 @@ class Category:
     def add_goal(self, goal):
         return self.goals.append(goal)
 
-    def remove_goal(self, goal):
+    def remove_goal(self, goalname):
         for g in self._get_all_goals():
-            if g.name == goal.name:
+            if g.name == goalname:
                 self.goals.remove(g)
 
     def get_progress_percentage(self):
