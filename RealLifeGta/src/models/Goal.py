@@ -69,6 +69,14 @@ class Goal:
     def get_steps(self):
         return self.steps
 
+    def remove_step(self, step_name):
+        for step in self.steps:
+            if step.name == step_name:
+                self.steps.remove(step)
+                print "Removed step with name: ",step.name,"from the goal"
+                return None
+        print "Step with name:",step_name," not found"
+
     def mark_step_complete(self, step_name):
         #Finds step by name and marks it complete
         for step in self.get_steps():

@@ -12,6 +12,7 @@ class Operation(Enum):
     GET_GOALS = 'gg'
     PUT_STEP = 'ps'
     GET_STEP = 'gs'
+    REMOVE_STEP = "rs"
     GET_PROGRESS_SUMMARY = 'gps'
     MARK_STEP_COMPLETE = 'msc'
     MARK_STEP_INCOMPLETE = 'msi'

@@ -24,6 +24,7 @@ class CommandLineInterface:
         print "Put Goals: \n\t pg <lowercase_goal_name_without_spaces>"
         print "Remove Goal: \n\t rg <lowercase_goal_name_without_spaces>"
         print "Put Step: \n\t ps <goal_name> <name> <cost_in_hours>"
+        print "Remove Step: \n\t rs <goal_name> <step_name>"
         print "Get Goals: \n\t gg"
 	print "Add Goal to Category: \n\t agc <lowercase_goal_name_without_space> <lowercase_category_name>"
         print "Remove Goal From Category: \n\t rgc <lowercase_goal_name_without_space> <lowercase_category_name>"
@@ -67,6 +68,8 @@ class CommandLineInterface:
             self.get_goals(lowercase_command)
         elif operation == Operation.PUT_STEP.value:
             self.put_step(lowercase_command)
+        elif operation == Operation.REMOVE_STEP.value:
+            self.remove_step(lowercase_command)
         elif operation == Operation.GET_PROGRESS_SUMMARY.value:
             self.show_progress_summary()
         elif operation == Operation.MARK_STEP_COMPLETE.value:
@@ -166,7 +169,13 @@ class CommandLineInterface:
             print "Specified goal not found!"
 
     def remove_step(self, command):
-        pass
+        # Remove step <lowercase_step_name> <lowercase_goal_name>
+        tokens = command.split()
+        step_name = tokens[2]
+        goal_name = tokens[1]
+        for goal in self.life.get_goals():
+            if goal_name == goal.name:
+                goal.remove_step(step_name)
 
     def _show_usage_and_accept_user_input(self):
         # Show usage and accept user input
