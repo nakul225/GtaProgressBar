@@ -55,9 +55,14 @@ class Goal:
         print " progress: " + str(self.get_progress_percentage()) + "%",
         print "[" + "#"*complete + "_"*remaining + "]"
 
+		# Show incomplete tasks first 
+        completed_steps=[s for s in self.steps if s.get_step_status() == StepStatus.COMPLETE]
+        incomplete_steps=[s for s in self.steps if s.get_step_status() == StepStatus.INCOMPLETE]
+        ordered_steps = incomplete_steps + completed_steps
+
         if len(self.steps) != 0:
             print "Steps: "
-        for step in self.steps:
+        for step in ordered_steps:
             #print "------------------------------------------------------"
             step.print_details()
 
