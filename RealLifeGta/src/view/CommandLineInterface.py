@@ -191,6 +191,8 @@ class CommandLineInterface:
         for goal in self.life.get_goals():
             if goal.name == goal_name:
                 goal.mark_step_complete(step_name)
+                # Show progress bars
+                goal.print_details()
 
     def mark_step_incomplete(self, command):
         elements = command.split()
@@ -200,6 +202,8 @@ class CommandLineInterface:
         for goal in self.life.get_goals():
             if goal.name == goal_name:
                 goal.mark_step_incomplete(step_name)
+                # Show progress bars
+                goal.print_details()
 
     def main_menu_loop(self):
         # Keeps the program running so that use can interact
