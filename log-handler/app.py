@@ -1,4 +1,5 @@
 from chalice import Chalice
+import boto3
 
 app = Chalice(app_name='log-handler')
 
@@ -8,7 +9,9 @@ def index():
 
 @app.route('/process/message', methods=['POST'])
 def process_message():
+    client = boto3.client('s3')
     message = app.current_request.json_body
+    message = client.list_buckets()
     return "Logging event with body: " + str(message)
 
 # The view function above will return {"hello": "world"}
