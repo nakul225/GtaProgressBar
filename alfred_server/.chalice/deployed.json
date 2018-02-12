@@ -1,0 +1,12 @@
+{
+  "dev": {
+    "region": "us-west-2",
+    "api_handler_name": "alfred_server-dev",
+    "api_handler_arn": "arn:aws:lambda:us-west-2:345753851363:function:alfred_server-dev",
+    "rest_api_id": "1a1uxveswf",
+    "lambda_functions": {},
+    "chalice_version": "1.1.0",
+    "api_gateway_stage": "api",
+    "backend": "api"
+  }
+}

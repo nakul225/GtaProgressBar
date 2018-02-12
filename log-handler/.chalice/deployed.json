@@ -1,0 +1,12 @@
+{
+  "dev": {
+    "region": "us-west-2",
+    "api_handler_name": "log-handler-dev",
+    "api_handler_arn": "arn:aws:lambda:us-west-2:345753851363:function:log-handler-dev",
+    "rest_api_id": "ingfvutz8b",
+    "lambda_functions": {},
+    "chalice_version": "1.1.0",
+    "api_gateway_stage": "api",
+    "backend": "api"
+  }
+}
