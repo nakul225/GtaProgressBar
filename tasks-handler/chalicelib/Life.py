@@ -7,6 +7,10 @@ class Life:
     def __init__(self):
         self.categories = []
         self.goals = []
+    
+    def __init__(self, input_goals, input_categories):
+        self.goals = input_goals
+        self.categories = input_categories
 
     def put_goal(self, goal):
         goal_exists = self._search_goal(goal)
