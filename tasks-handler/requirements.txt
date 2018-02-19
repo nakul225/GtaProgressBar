@@ -20,12 +20,20 @@ client.create_table(TableName="tasks_handler_life",KeySchema=[
         {
             'AttributeName': 'user_name',
             'KeyType': 'HASH'
-        }],
+        },
+	{
+	    'AttributeName': 'goal_name',
+	    'KeyType': 'RANGE'
+	}],
         AttributeDefinitions=[
         {
             'AttributeName': 'user_name',
             'AttributeType': 'S'
-        }],
+        },
+	{
+	    'AttributeName': 'goal_name',
+	    'AttributeType': 'S'
+	}],
         ProvisionedThroughput={
         'ReadCapacityUnits': 10,
         'WriteCapacityUnits': 10
@@ -33,11 +41,19 @@ client.create_table(TableName="tasks_handler_life",KeySchema=[
 )
 
 client.create_table(TableName="tasks_handler_goals",KeySchema=[
+ {
+            'AttributeName': 'user_name',
+            'KeyType': 'HASH'
+        },
         {
             'AttributeName': 'goal_name',
-            'KeyType': 'HASH'
+            'KeyType': 'RANGE'
         }],
         AttributeDefinitions=[
+        {
+            'AttributeName': 'user_name',
+            'AttributeType': 'S'
+        },
         {
             'AttributeName': 'goal_name',
             'AttributeType': 'S'
@@ -46,15 +62,24 @@ client.create_table(TableName="tasks_handler_goals",KeySchema=[
         'ReadCapacityUnits': 10,
         'WriteCapacityUnits': 10
         }
+
 )
 
 
 client.create_table(TableName="tasks_handler_categories",KeySchema=[
+ {
+            'AttributeName': 'user_name',
+            'KeyType': 'HASH'
+        },
         {
             'AttributeName': 'category_name',
-            'KeyType': 'HASH'
+            'KeyType': 'RANGE'
         }],
         AttributeDefinitions=[
+        {
+            'AttributeName': 'user_name',
+            'AttributeType': 'S'
+        },
         {
             'AttributeName': 'category_name',
             'AttributeType': 'S'
@@ -63,4 +88,5 @@ client.create_table(TableName="tasks_handler_categories",KeySchema=[
         'ReadCapacityUnits': 10,
         'WriteCapacityUnits': 10
         }
+
 )

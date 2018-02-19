@@ -39,27 +39,60 @@ def _load_life(username):
     return life
 
 def _load_from_ddb(username):
-    # Hardcoding table names here for now
     ddb = boto3.client('dynamodb')
-    #print ddb.list_tables()
-    table_data = ddb.scan(TableName = "tasks_handler_life") # get all users because there's not many
+    print ">> Reading goals from table"
+    goals=_read_goals(ddb, username)
+    print ">> Reading categories from table"
+    categories=_read_categories(ddb, username)
+    print ">>Loaded following goals and categories from ddb:"
+    print goals
+    print categories
+    life = Life()
+    life.goals = goals
+    life.categories = categories
+    return life
+
+def _read_goals(ddb, username):
+    table_data = ddb.scan(TableName = "tasks_handler_goals")
     all_rows=table_data["Items"]
-    user_life_data=""
+    user_goals=[]
     for row in all_rows:
         # Find row for given username
         if row['user_name']['S'] == username:
             # Found data for user
-            user_life_data = row['data']['S']
-            print "All User data:" + str(row['user_name'])
-            break
-    return pickle.loads(user_life_data)
+            data = row['data']['S']
+            #print ">>> Deserializing goal data: " + str(data)
+            goal = pickle.loads(data)
+            #print ">>> goal_dict:" + goal.get_details()
+            user_goals.append(goal)
+    return user_goals
+
+def _write_goals(ddb, username, goals):
+    print ">> Write_goals, goals:" + str(goals)
+    for goal in goals:
+        data_to_be_written = pickle.dumps(goal)
+        ddb.put_item(TableName="tasks_handler_goals", Item={"user_name":{"S":username},"goal_name":{"S":goal.get_name()},"data":{"S":data_to_be_written}})
+
+def _read_categories(ddb, username):
+    table_data = ddb.scan(TableName = "tasks_handler_categories")
+    all_rows = table_data["Items"]
+    user_categories_data=[]
+    for row in all_rows:
+        if row['user_name']['S'] == username:
+            category = pickle.loads(row['data']['S'])
+            user_categories_data.append(category)
+    return user_categories_data
+
+def _write_categories(ddb, username, categories):
+    for category in categories:
+        data_to_be_written = pickle.dumps(category)
+        ddb.put_item(TableName="tasks_handler_categories", Item={"user_name":{"S":username},"category_name":{"S":category.get_name()},"data":{"S":data_to_be_written}})
 
 def _write_to_ddb(username, life):
     ddb = boto3.client('dynamodb')
-    data_to_be_written = pickle.dumps(life)
-    #print "Writing data to ddb: \n" + data_to_be_written
-    ddb.put_item(TableName="tasks_handler_life", Item={"user_name":{"S":username},"data":{"S":data_to_be_written}})
-
+    # Write a new row for each goal
+    _write_goals(ddb, username, life.get_goals())
+    _write_categories(ddb, username, life.get_categories())
 ########################################################################
 
 import uuid
