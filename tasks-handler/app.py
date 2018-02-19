@@ -12,27 +12,36 @@ def index():
 @app.route('/process/message', methods=['POST'])
 def process_message():
     # Extract command from body
+    command_response=None
     request_body = app.current_request.json_body
     command = request_body["command"]
     username= request_body["username"]
     
     life = _load_life(username) 
-    command_response = CommandLineInterface(life)._process_command(command)
+    cli=CommandLineInterface(life)
+    command_response=cli.process_command(command)
     _write_to_ddb(username, life)
 
-    response_body={"body":request_body, "result":command_response}
+    response_body={"request":request_body, "result":command_response}
     return Response(body=response_body)
     
 def _load_life(username):
     try: 
-        return _load_from_ddb(username)
-    except:
-        return Life()
+        life = _load_from_ddb(username)
+        print "Successfully loaded life instance from datastore: " + str(life)
+    except Exception as e:
+        life = Life()
+        print "Caught exception, so creating a new Life instance, exception message: " + str(e)
+
+    if life is None:
+        print "Life is None even after loading from datastore, creating a new one"
+        life = Life()
+    return life
 
 def _load_from_ddb(username):
     # Hardcoding table names here for now
     ddb = boto3.client('dynamodb')
-    print ddb.list_tables()
+    #print ddb.list_tables()
     table_data = ddb.scan(TableName = "tasks_handler_life") # get all users because there's not many
     all_rows=table_data["Items"]
     user_life_data=""
@@ -41,12 +50,14 @@ def _load_from_ddb(username):
         if row['user_name']['S'] == username:
             # Found data for user
             user_life_data = row['data']['S']
+            print "All User data:" + str(row['user_name'])
             break
-    life = pickle.loads(user_life_data)
+    return pickle.loads(user_life_data)
 
 def _write_to_ddb(username, life):
     ddb = boto3.client('dynamodb')
     data_to_be_written = pickle.dumps(life)
+    #print "Writing data to ddb: \n" + data_to_be_written
     ddb.put_item(TableName="tasks_handler_life", Item={"user_name":{"S":username},"data":{"S":data_to_be_written}})
 
 ########################################################################
@@ -58,7 +69,10 @@ class Category:
         self.id=str(guid) #UUID
         self.name=name
         self.goals=[]
-
+	
+    def get_name(self):
+	return self.name
+	
     def _get_total_number_of_goals(self):
         return len(self.goals)
 
@@ -91,6 +105,16 @@ class Category:
             print "------------------------------------------------------"
             print goal.name
         print "==========================================================\n"
+
+    def get_details(self):
+	response = {}
+	goals_data = {}
+	for goal in self.goals:
+		goals_data[goal.get_name()] = goal.get_details()
+	response["name"]=self.name
+	response["progress"]=str(self.get_progress_percentage()) + "%"
+	response["goals"]=goals_data
+	return response
 
     @staticmethod
     def build_new_category(name):
@@ -128,6 +152,12 @@ class Step:
         print " cost: " + str(self.cost_in_hours),
         print " status: " + self.status.name
 
+    def get_name(self):
+	return self.name
+
+    def get_details(self):
+	return {"name":self.name,"cost":self.cost_in_hours,"status":self.status.name}
+
     @staticmethod
     def build_new_step(name, description, cost_in_hours):
         guid = uuid.uuid4()
@@ -141,12 +171,25 @@ class Life:
         self.categories = []
         self.goals = []
 
+    def get_all_goals_details():
+	response = {}
+	for goal in self.goals:
+		response[goal.get_name()] = goal.get_details()
+	return response
+
+    def get_all_categories_details():
+	response = {}
+	for category in self.categories:
+		response[category.get_name()] = category.get_details()
+	return response
+
     def put_goal(self, goal):
         goal_exists = self._search_goal(goal)
         if goal_exists:
             print "Goal",goal.name,"already exists, won't create a new one"
         else:
             self.goals.append(goal)
+	return goal.get_details()
 
     def remove_goal(self, goal_name):
         goal_exists = self._search_goal_by_name(goal_name)
@@ -285,6 +328,9 @@ class Goal:
         self.name = name
         self.description= description
 
+    def get_name(self):
+	return self.name
+
     def _get_total_num_of_steps(self):
         return len(self.steps)
 
@@ -330,31 +376,62 @@ class Goal:
 
         print "==========================================================\n"
 
+    def get_details(self):
+        response={}
+	#progress data
+        complete=int(self.get_progress_percentage()/10)
+        remaining=10-complete
+        response["name"]=self.name
+        response["cost"]=str(self.get_total_cost_in_hours())
+        response["progress"]=str(self.get_progress_percentage()) + "%"
+        response["progress_bar"]="[" + "#"*complete + "_"*remaining + "]"
+	response["steps"]=self.get_all_steps_details()	
+	return response
+
+    def get_all_steps_details(self):
+	steps_data={}
+	for step in self.get_steps():
+                steps_data[step.get_name()] = step.get_details()
+	return steps_data
+
     def put_step(self, step):
         self.steps.append(step)
-
+	return self.get_details()
+	
     def get_steps(self):
-        return self.steps
+	completed_steps=[s for s in self.steps if s.get_step_status() == StepStatus.COMPLETE]
+        incomplete_steps=[s for s in self.steps if s.get_step_status() == StepStatus.INCOMPLETE]
+        ordered_steps = incomplete_steps + completed_steps
+
+        return ordered_steps
 
     def remove_step(self, step_name):
+	flag = False
         for step in self.steps:
             if step.name == step_name:
                 self.steps.remove(step)
                 print "Removed step with name: ",step.name,"from the goal"
-                return None
+		flag = True
+		break
         print "Step with name:",step_name," not found"
+	if flag:
+		return {"result":"success", "details":self.get_details()}
+	else:
+		return {"result":"failure", "reason":"step_not_found"}
 
     def mark_step_complete(self, step_name):
         #Finds step by name and marks it complete
         for step in self.get_steps():
             if step.name == step_name:
                 step.mark_step_complete()
+	return self.get_details()
 
     def mark_step_incomplete(self, step_name):
         #Finds step by name and marks it incomplete
         for step in self.get_steps():
             if step.name == step_name:
                 step.mark_step_incomplete()
+	return self.get_details()
 
     @staticmethod
     def build_new_goal(name, description):
@@ -382,7 +459,14 @@ class Operation(Enum):
     GET_CATEGORIES = "gc"
     ADD_GOAL_TO_CATEGORY = "agc"
     REMOVE_GOAL_FROM_CATEGORY = "rgc"
+##############################################################
 
+class TaskHandlerResponse:
+    def __init__(self, input_message):
+        self.message = {"message":input_message}
+
+    def get_body(self):
+        return self.message
 ##############################################################
 
 import traceback
@@ -392,6 +476,10 @@ class CommandLineInterface:
     # Implementation that provides cmd line input/response interaction
     def __init__(self, providedLife):
         self.life = providedLife
+        print ">>> Initiating life: " + str(self.life)
+
+    def usage(self):
+        return {"pg":"put categories"}
 
     def _show_usage(self):
         print "\n==========================================================="
@@ -414,61 +502,78 @@ class CommandLineInterface:
 
     def _show_progress(self):
         #Iterates through each goal/category and shows progress for each one
-        self._show_progress_for_goals()
-        self._show_progress_for_categories()
+        response = {}
+        goals_response = self._show_progress_for_goals()
+        categories_response = self._show_progress_for_categories()
+        response["goals_progress"] = goals_response
+        response["categories_progress"] = categories_response
+        return response
 
     def _show_progress_for_goals(self):
         #Iterates through each goal and shows progress for each one
+        response = {}
         for goal in self.life.get_goals():
             print "Goal " + goal.name + " is " + str(goal.get_progress_percentage()) + "% complete"
+            response[goal.name] = str(goal.get_progress_percentage()) + "% complete"
+        return response
 
     def _show_progress_for_categories(self):
         #Iterates through each goal and shows progress for each one
+        response = {}
         for category in self.life.get_categories():
-            print "Category " + category.name + " has completed " + str(category.get_progress_percentage())
+            #print "Category " + category.name + " has completed " + str(category.get_progress_percentage())
+            response[category.name] = str(category.get_progress_percentage())
+        return response
 
-
-    def _process_command(self, command):
+    def process_command(self, command):
         lowercase_command = command.lower()
-        if command == "":
-                self._show_usage()
-                return
+        #if command == "":
+        #        self._show_usage()
+        #        return
 
         operation = lowercase_command.split()[0]
-        continue_program = True
+        #continue_program = True
 
-        if operation == Operation.EXIT.value:
-            continue_program  = False
-        elif operation == Operation.PUT_GOAL.value:
-            self.put_goal(lowercase_command)
-        elif operation == Operation.REMOVE_GOAL.value:
-            self.remove_goal(lowercase_command)
-        elif operation == Operation.GET_GOALS.value:
-            self.get_goals(lowercase_command)
-        elif operation == Operation.PUT_STEP.value:
-            self.put_step(lowercase_command)
-        elif operation == Operation.REMOVE_STEP.value:
-            self.remove_step(lowercase_command)
-        elif operation == Operation.GET_PROGRESS_SUMMARY.value:
-            self.show_progress_summary()
-        elif operation == Operation.MARK_STEP_COMPLETE.value:
-            self.mark_step_complete(lowercase_command)
-        elif operation == Operation.MARK_STEP_INCOMPLETE.value:
-            self.mark_step_incomplete(lowercase_command)
-        elif operation == Operation.PUT_CATEGORY.value:
-            self.put_category(lowercase_command)
-        elif operation == Operation.REMOVE_CATEGORY.value:
-            self.remove_category(lowercase_command)
-        elif operation == Operation.GET_CATEGORIES.value:
-            self.get_categories(lowercase_command)
-        elif operation == Operation.ADD_GOAL_TO_CATEGORY.value:
-            self.add_goal_to_category(lowercase_command)
-        elif operation == Operation.REMOVE_GOAL_FROM_CATEGORY.value:
-            self.remove_goal_from_category(lowercase_command)
-        else:
-            print "Operation not recognized. Please see usage:"
-            self._show_usage()
-        return continue_program
+        try:
+            if operation == Operation.EXIT.value:
+                #continue_program  = False
+                pass
+            elif operation == Operation.PUT_GOAL.value:
+                response = self.put_goal(lowercase_command)
+            elif operation == Operation.REMOVE_GOAL.value:
+                response = self.remove_goal(lowercase_command)
+            elif operation == Operation.GET_GOALS.value:
+                response = self.get_goals(lowercase_command)
+            elif operation == Operation.PUT_STEP.value:
+                response = self.put_step(lowercase_command)
+            elif operation == Operation.REMOVE_STEP.value:
+                response = self.remove_step(lowercase_command)
+            elif operation == Operation.GET_PROGRESS_SUMMARY.value:
+                response = self.show_progress_summary()
+            elif operation == Operation.MARK_STEP_COMPLETE.value:
+                response = self.mark_step_complete(lowercase_command)
+            elif operation == Operation.MARK_STEP_INCOMPLETE.value:
+                response = self.mark_step_incomplete(lowercase_command)
+            elif operation == Operation.PUT_CATEGORY.value:
+                response = self.put_category(lowercase_command)
+            elif operation == Operation.REMOVE_CATEGORY.value:
+                response = self.remove_category(lowercase_command)
+            elif operation == Operation.GET_CATEGORIES.value:
+                response = self.get_categories(lowercase_command)
+            elif operation == Operation.ADD_GOAL_TO_CATEGORY.value:
+                response = self.add_goal_to_category(lowercase_command)
+            elif operation == Operation.REMOVE_GOAL_FROM_CATEGORY.value:
+                response = self.remove_goal_from_category(lowercase_command)
+            else:
+                print "Operation not recognized. Please see usage:"
+                #self._show_usage()
+                response = self.usage()
+        except Exception as e:
+            #{"result":"exception_testing"} 
+            response = {"exception": str(e)}
+            traceback.print_exc(file=sys.stdout)
+        result = {"response_message": response}
+        return result
                                              
     def show_progress_summary(self):
         self._show_progress()
@@ -478,7 +583,7 @@ class CommandLineInterface:
         tokens=command.split()
         name=tokens[1].lower()
         category=Category.build_new_category(name)
-        self.life.put_category(category)
+        return self.life.put_category(category)
 
     def get_categories(self, command):
         # GetCategories
@@ -488,25 +593,26 @@ class CommandLineInterface:
             print "You have following categories in the system:"
             for c in self.life.get_categories():
                 c.print_details()
+        #TODO
 
     def add_goal_to_category(self, command):
         #AddGoalToCategory goal_name category_name
         tokens = command.split()
         goal_name=tokens[1].lower()
         category_name=tokens[2].lower()
-        self.life.add_goal_to_category(goal_name, category_name)
+        return self.life.add_goal_to_category(goal_name, category_name)
 
     def remove_goal_from_category(self, command):
         elements = command.split()
         goal_name = elements[1].lower()
         category_name = elements[2].lower()
-        self.life.remove_goal_from_category(goal_name, category_name)
+        return self.life.remove_goal_from_category(goal_name, category_name)
 
     def remove_category(self, command):
         #RemoveCategory <category_name>
         tokens=command.split()
         name=tokens[1].lower()
-        self.life.remove_category(name)
+        return self.life.remove_category(name)
 
     def put_goal(self, command):
         #PutGoal <lowercase_goal_name_without_spaces> <lowercase_description_without_spaces>
@@ -514,21 +620,27 @@ class CommandLineInterface:
         name = elements[1].lower()
         description = "dummy_description"
         goal = Goal.build_new_goal(name, description)
-        self.life.put_goal(goal)
+        return self.life.put_goal(goal)
 
     def remove_goal(self, command):
         #RemoveGoal <lowercase_goal_name_without_spaces>
         elements = command.split()
         name = elements[1].lower()
-        self.life.remove_goal(name)
+        return self.life.remove_goal(name)
 
     def get_goals(self, command):
+        response = {}
+        goals_data={}
         if len(self.life.get_goals()) == 0:
             print "You don't have any goals in the system"
+            response = {"result":"failure", "reason":"no_goals_found"}
         else:
             print "You have following goals in the system: "
             for goal in self.life.get_goals():
                 goal.print_details()
+                goals_data[goal.get_name()]=goal.get_details()
+        response = {"result":"success","goals":goals_data}
+        return response
 
     def put_step(self, command):
         #PutStep <name> <description> <cost_in_hours> <name_of_goal>
@@ -546,15 +658,28 @@ class CommandLineInterface:
                 success=True
         if success == False:
             print "Specified goal not found!"
+        response = {}
+        response["result"]="success"
+        response["goal"]=goal_name
+        response["step"]=name
+        response["cost"]=cost
+        return response
 
     def remove_step(self, command):
         # Remove step <lowercase_step_name> <lowercase_goal_name>
         tokens = command.split()
         step_name = tokens[2]
         goal_name = tokens[1]
+        flag=False
         for goal in self.life.get_goals():
             if goal_name == goal.name:
                 goal.remove_step(step_name)
+                flag=True
+                break
+        if flag:
+            return {"result":"success"}
+        else:
+            return {"result":"failure", "reason":"step_not_found"}
 
     def _show_usage_and_accept_user_input(self):
         # Show usage and accept user input
@@ -566,23 +691,41 @@ class CommandLineInterface:
         elements = command.split()
         goal_name = elements[1]
         step_name = elements[2]
+        flag = False
+        details = {}
         print "Marking step "+ step_name + " in goal " + goal_name + " as COMPLETE"
         for goal in self.life.get_goals():
             if goal.name == goal_name:
                 goal.mark_step_complete(step_name)
                 # Show progress bars
                 goal.print_details()
+                details = goal.get_details()
+                flag = True
+                break
+        if flag:
+            return {"result":"success","step":step_name,"status":"complete","goal":details}
+        else:
+            return {"result":"failure","reason":"goal_not_found"}
 
     def mark_step_incomplete(self, command):
         elements = command.split()
         goal_name = elements[1]
         step_name = elements[2]
+        flag = False
+        details = {}
         print "Marking step "+ step_name + " in goal " + goal_name + " as INCOMPLETE"
         for goal in self.life.get_goals():
             if goal.name == goal_name:
                 goal.mark_step_incomplete(step_name)
                 # Show progress bars
                 goal.print_details()
+                details=goal.get_details()
+                flag =True
+                break
+        if flag:
+            return {"result":"success","step":step_name,"status":"incomplete","goal":details}
+        else:
+            return {"result":"failure", "reason":"goal_not_found"}
 
     def main_menu_loop(self):
         # Keeps the program running so that use can interact
@@ -598,7 +741,7 @@ class CommandLineInterface:
         # Useful to accept single command invoked with the program. This is alternative to having conitinous loop of accepting commands and showing output.
         try:
             actual_command = " ".join(sys.argv[1:])
-            self._process_command(actual_command)
+            self.process_command(actual_command)
         except:
             print "Exception raised while dealing with input command: "+traceback.print_exc(file=sys.stdout)
             self._show_usage()
