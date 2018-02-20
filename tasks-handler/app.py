@@ -512,7 +512,19 @@ class CommandLineInterface:
         print ">>> Initiating life: " + str(self.life)
 
     def usage(self):
-        return {"pg":"put categories"}
+        return {
+                "pc":"put categories -- pc <category_name>",
+                "gc":"get categories -- gc",
+                "rc":"remove categories -- rc <category_name>",
+                "pg":"put goals -- pg <goal_name>",
+                "rg":"remove goals -- rg <goal_name>",
+                "ps":"put step -- ps <goal_name> <name> <cost_in_hours>",
+                "rs":"remove step -- rs <goal_name> <step_name>",
+                "gg":"get goals -- gg",
+                "agc":"add goals to category -- agc <goal_name> <category_name>",
+                "rgc":"remove goals from category -- rgc <goal_name> <category_name>",
+                "msc":"mark step complete -- msc <goal_name> <step_name>",
+                "msi":"mark step incomplete -- msi <goal_name> <step_name>"}
 
     def _show_usage(self):
         print "\n==========================================================="
