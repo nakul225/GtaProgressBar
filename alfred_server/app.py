@@ -73,6 +73,7 @@ class Alfred:
         LOG_HANDLER_URL="https://ingfvutz8b.execute-api.us-west-2.amazonaws.com/api/process/message"
         BODY_MEASUREMENTS_HANDLER_URL=""
         READ_HANDLER_URL=""
+        TASKS_HANDLER_URL="https://4v8uog9pw8.execute-api.us-west-2.amazonaws.com/api/process/message"
 
         handlers = {} # Key: MessageType, Value: Handler
         handlers[MessageType.TEST.name]=[LOG_HANDLER_URL]
