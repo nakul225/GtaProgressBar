@@ -113,12 +113,24 @@ class Category:
         return self.goals
 
     def add_goal(self, goal):
-        return self.goals.append(goal)
+        self.goals.append(goal)
+        response = []
+        for g in self.goals:
+            response.append(g.get_details())
+        return response
 
     def remove_goal(self, goalname):
+        flag=False
         for g in self._get_all_goals():
             if g.name == goalname:
                 self.goals.remove(g)
+                flag=True
+                break
+        if flag:
+            response = {"result":"success"}
+        else:
+            response = {"result":"failure", "reason":"goal not found"}
+        return response
 
     def get_progress_percentage(self):
         # Returns progress in percentage 
@@ -204,13 +216,13 @@ class Life:
         self.categories = []
         self.goals = []
 
-    def get_all_goals_details():
+    def get_all_goals_details(self):
 	response = {}
 	for goal in self.goals:
 		response[goal.get_name()] = goal.get_details()
 	return response
 
-    def get_all_categories_details():
+    def get_all_categories_details(self):
 	response = {}
 	for category in self.categories:
 		response[category.get_name()] = category.get_details()
@@ -236,6 +248,7 @@ class Life:
                         c.remove_goal(goal)
         else:
             print "Goal",goal_name,"doesn't exist, nothing to remove"
+        return self.get_all_goals_details()
 
     def put_category(self, category):
         category_exists = self._search_category(category)
@@ -243,6 +256,7 @@ class Life:
             print "Category",category.name,"already exists, won't create a new one"
         else:
             self.categories.append(category)
+        return self.get_all_categories_details()
     
     def remove_category(self, category_name):
         category_exists = self._search_category_by_name(category_name)
@@ -254,6 +268,7 @@ class Life:
                     print "Category removed"
         else:
             print "Category",category_name,"doesn't exist"
+        return self.get_all_categories_details()
 
     def get_goals(self):
         return self.goals
@@ -303,7 +318,7 @@ class Life:
                         category_exists = True
 
         if not goal_exists and not category_exists:
-                print "Either goal or category doesn't exist, goal_exists:" + goal_exists + " and category_exists:" + category_exists
+                print "Either goal or category doesn't exist, goal_exists:" + str(goal_exists) + " and category_exists:" + str(category_exists)
         else:
                 # Both exist, so create the connection
                 goal=None
@@ -314,6 +329,7 @@ class Life:
                 for c in self.categories:
                         if c.name == categoryname:
                                 c.add_goal(goal)
+        return self.get_all_categories_details()
 
     def remove_goal_from_category(self, goalname, categoryname):
         goal_exists = self._search_goal_by_name(goalname)
@@ -325,6 +341,7 @@ class Life:
                     print "Removed goal:",goalname,"from category:",categoryname
         else:
             print "Either goal or category doesn't exist"
+        return self.get_all_categories_details()
 
     @staticmethod
     def build_new_life():
@@ -632,13 +649,18 @@ class CommandLineInterface:
 
     def get_categories(self, command):
         # GetCategories
+        response = {}
+        categories_data={}
         if len(self.life.get_categories()) == 0:
             print "You don't have any categories in the system"
+            response = {"result":"failure", "reason":"no_categories_found"}
         else:
-            print "You have following categories in the system:"
-            for c in self.life.get_categories():
-                c.print_details()
-        #TODO
+            print "You have following categories in the system: "
+            for category in self.life.get_categories():
+                category.print_details()
+                categories_data[category.get_name()]=category.get_details()
+        response = {"result":"success","categories":categories_data}
+        return response
 
     def add_goal_to_category(self, command):
         #AddGoalToCategory goal_name category_name
