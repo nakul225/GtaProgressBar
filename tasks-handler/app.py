@@ -14,6 +14,7 @@ def process_message():
     # Extract command from body
     command_response=None
     request_body = app.current_request.json_body
+    print "> request_body: " + request_body
     command = request_body["command"]
     username= request_body["username"]
     
@@ -696,6 +697,7 @@ class CommandLineInterface:
         return self.life.remove_goal(name)
 
     def get_goals(self, command):
+        # TODO Just return output from Life.get_all_goals_details()
         response = {}
         goals_data={}
         if len(self.life.get_goals()) == 0:
@@ -710,6 +712,7 @@ class CommandLineInterface:
         return response
 
     def put_step(self, command):
+        # TODO Return response from life.put_step
         #PutStep <name> <description> <cost_in_hours> <name_of_goal>
         elements = command.split()
         goal_name = elements[1].lower()
