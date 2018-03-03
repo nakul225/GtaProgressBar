@@ -5,7 +5,7 @@ import pickle
 app = Chalice(app_name='tasks-handler')
 app.debug=True
 
-@app.route('/')
+@app.route('/', methods=['POST','GET'])
 def index():
     return {'hello': 'world'}
 
