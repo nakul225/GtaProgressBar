@@ -1,6 +1,7 @@
 from chalice import Chalice, Response
 import boto3
 import pickle
+from urlparse import urlparse, parse_qs
 
 app = Chalice(app_name='tasks-handler')
 app.debug=True
