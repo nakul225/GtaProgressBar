@@ -14,7 +14,7 @@ def process_message():
     # Extract command from body
     command_response=None
     request_body = app.current_request.json_body
-    print "> request_body: " + request_body
+    print "> request_body: " + str(request_body)
     command = request_body["command"]
     username= request_body["username"]
     
