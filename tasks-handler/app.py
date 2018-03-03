@@ -5,9 +5,11 @@ import pickle
 app = Chalice(app_name='tasks-handler')
 app.debug=True
 
-@app.route('/', methods=['POST','GET'])
+@app.route('/', methods=['POST','GET'], content_types=['application/x-www-form-urlencoded'])
 def index():
-    return {'hello': 'world'}
+    parsed = parse_qs(app.current_request.raw_body.decode())
+    return {'states': parsed.get('command', [])}
+    #return {'hello': 'world'}
 
 @app.route('/process/message', methods=['POST'])
 def process_message():
