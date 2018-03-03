@@ -1,16 +1,13 @@
 from chalice import Chalice, Response
 import boto3
 import pickle
-from urlparse import urlparse, parse_qs
 
 app = Chalice(app_name='tasks-handler')
 app.debug=True
 
-@app.route('/', methods=['POST','GET'], content_types=['application/x-www-form-urlencoded'])
+@app.route('/', methods=['POST','GET'])
 def index():
-    parsed = parse_qs(app.current_request.raw_body.decode())
-    return {'states': parsed.get('command', [])}
-    #return {'hello': 'world'}
+    return {'hello': 'world'}
 
 @app.route('/process/message', methods=['POST'])
 def process_message():
