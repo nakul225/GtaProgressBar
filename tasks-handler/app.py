@@ -116,9 +116,19 @@ class Category:
     def add_goal(self, goal):
         self.goals.append(goal)
         response = []
-        for g in self.goals:
-            response.append(g.get_details())
+        for goal in self._get_all_goals():
+            response.append(goal)
         return response
+
+    def mark_step_complete(self, goalname, stepname):
+        for g in self._get_all_goals():
+            if g.name == goalname:
+                g.mark_step_complete(stepname)
+
+    def mark_step_incomplete(self, goalname, stepname):
+        for g in self._get_all_goals():
+            if g.name == goalname:
+                g.mark_step_incomplete(stepname)
 
     def remove_goal(self, goalname):
         flag=False
@@ -772,6 +782,9 @@ class CommandLineInterface:
                 details = goal.get_details()
                 flag = True
                 break
+        for category in self.life.get_categories():
+            category.mark_step_complete(goal_name, step_name)
+
         if flag:
             return {"result":"success","step":step_name,"status":"complete","goal":details}
         else:
@@ -792,6 +805,11 @@ class CommandLineInterface:
                 details=goal.get_details()
                 flag =True
                 break
+        # Update in categories too
+        for category in self.life.get_categories():
+            # If goal exists in category, then update status
+            category.mark_step_incomplete(goal_name, step_name)
+
         if flag:
             return {"result":"success","step":step_name,"status":"incomplete","goal":details}
         else:
