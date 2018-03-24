@@ -46,8 +46,8 @@ def _load_from_ddb(username):
     print ">> Reading categories from table"
     categories=_read_categories(ddb, username)
     print ">>Loaded following goals and categories from ddb:"
-    print goals
-    print categories
+    #print goals
+    #print categories
     life = Life()
     life.goals = goals
     life.categories = categories
@@ -69,7 +69,7 @@ def _read_goals(ddb, username):
     return user_goals
 
 def _write_goals(ddb, username, goals):
-    print ">> Write_goals, goals:" + str(goals)
+    #print ">> Write_goals, goals:" + str(goals)
     for goal in goals:
         data_to_be_written = pickle.dumps(goal)
         ddb.put_item(TableName="tasks_handler_goals", Item={"user_name":{"S":username},"goal_name":{"S":goal.get_name()},"data":{"S":data_to_be_written}})
@@ -146,9 +146,13 @@ class Category:
     def get_progress_percentage(self):
         # Returns progress in percentage 
         total_progress = 0.0 # This will be percentage progress in each goal
+        
         for goal in self._get_all_goals():
             total_progress += goal.get_progress_percentage()
+        
+        if self._get_total_number_of_goals() > 0:
             return total_progress/self._get_total_number_of_goals()
+        return 0.0
 
     def print_details(self):
         print "\n=========================================================="
@@ -548,7 +552,7 @@ class CommandLineInterface:
                 "rg":"remove goals -- rg <goal_name>",
                 "ps":"put step -- ps <goal_name> <name> <cost_in_hours>",
                 "rs":"remove step -- rs <goal_name> <step_name>",
-                "gg":"get goals -- gg",
+                "gg":"get goals <goal name optional> -- gg <goal_name optional>",
                 "agc":"add goals to category -- agc <goal_name> <category_name>",
                 "rgc":"remove goals from category -- rgc <goal_name> <category_name>",
                 "msc":"mark step complete -- msc <goal_name> <step_name>",
@@ -564,7 +568,7 @@ class CommandLineInterface:
         print "Remove Goal: \n\t rg <lowercase_goal_name_without_spaces>"
         print "Put Step: \n\t ps <goal_name> <name> <cost_in_hours>"
         print "Remove Step: \n\t rs <goal_name> <step_name>"
-        print "Get Goals: \n\t gg"
+        print "Get Goals: \n\t gg <goal_name optional>"
         print "Add Goal to Category: \n\t agc <lowercase_goal_name_without_space> <lowercase_category_name>"
         print "Remove Goal From Category: \n\t rgc <lowercase_goal_name_without_space> <lowercase_category_name>"
         print "Mark Step Complete: \n\t msc <goal_name> <step_name>"
@@ -708,6 +712,14 @@ class CommandLineInterface:
 
     def get_goals(self, command):
         # TODO Just return output from Life.get_all_goals_details()
+        elements = command.split()
+        goal_name = None
+        try:
+            # Only return details for goal_name if provided
+            goal_name = elements[1]
+        except:
+            pass
+
         response = {}
         goals_data={}
         if len(self.life.get_goals()) == 0:
@@ -716,9 +728,12 @@ class CommandLineInterface:
         else:
             print "You have following goals in the system: "
             for goal in self.life.get_goals():
-                goal.print_details()
+                # goal.print_details()
                 goals_data[goal.get_name()]=goal.get_details()
-        response = {"result":"success","goals":goals_data}
+        if goal_name:
+            response = {"result":"success","goals":goals_data[goal_name]}
+        else:
+            response = {"result":"success","goals":goals_data}
         return response
 
     def put_step(self, command):
