@@ -68,11 +68,18 @@ def _read_goals(ddb, username):
             user_goals.append(goal)
     return user_goals
 
-def _write_goals(ddb, username, goals):
+def _write_goals(ddb, life, username, goals):
     #print ">> Write_goals, goals:" + str(goals)
     for goal in goals:
+        #Remove goal from DDB if it was removed from life object
         data_to_be_written = pickle.dumps(goal)
-        ddb.put_item(TableName="tasks_handler_goals", Item={"user_name":{"S":username},"goal_name":{"S":goal.get_name()},"data":{"S":data_to_be_written}})
+        print "Writing goal with name: " + goal.name + " to DDB"
+        ddb.put_item(TableName="tasks_handler_goals", Item={"user_name":{"S":username},"goal_name":{"S":goal.get_name()},"data":{"S":data_to_be_written}})   
+    # Find goals that were removed in the transaction and then remove it from ddb
+    for goal in _read_goals(ddb, username):
+        if goal.name not in [g.name for g in goals]:
+            print "removing goal with name: " + str(goal.name)
+            ddb.delete_item(TableName="tasks_handler_goals",Key={"user_name":{"S":username},"goal_name":{"S":goal.name}})
 
 def _read_categories(ddb, username):
     table_data = ddb.scan(TableName = "tasks_handler_categories")
@@ -84,16 +91,22 @@ def _read_categories(ddb, username):
             user_categories_data.append(category)
     return user_categories_data
 
-def _write_categories(ddb, username, categories):
+def _write_categories(ddb, life, username, categories):
+    # Remove all categories and then add existing ones. Doing ugly things because I couldn't find a way to set update behavior in boto. 
+    for category in _read_categories(ddb, username):
+        print "removing category with name: " + str(category.name)
+        ddb.delete_item(TableName="tasks_handler_categories",Key={"user_name":{"S":username},"category_name":{"S":category.name}})
+    
     for category in categories:
         data_to_be_written = pickle.dumps(category)
+        print "Writing category with name: " + category.name + "to DDB"
         ddb.put_item(TableName="tasks_handler_categories", Item={"user_name":{"S":username},"category_name":{"S":category.get_name()},"data":{"S":data_to_be_written}})
-
+  
 def _write_to_ddb(username, life):
     ddb = boto3.client('dynamodb')
     # Write a new row for each goal
-    _write_goals(ddb, username, life.get_goals())
-    _write_categories(ddb, username, life.get_categories())
+    _write_goals(ddb, life, username, life.get_goals())
+    _write_categories(ddb, life, username, life.get_categories())
 ########################################################################
 
 import uuid
