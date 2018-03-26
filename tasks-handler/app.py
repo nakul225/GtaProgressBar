@@ -148,6 +148,7 @@ class Category:
         for g in self._get_all_goals():
             if g.name == goalname:
                 self.goals.remove(g)
+                print "Removed goal "+ goal.name+ " from category"
                 flag=True
                 break
         if flag:
