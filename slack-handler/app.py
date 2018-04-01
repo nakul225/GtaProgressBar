@@ -41,7 +41,7 @@ def process_message(username):
             formatted_output = format_output_for_all_goals(response.json())
         else:
             formatted_output = format_output_for_specific_goal(response.json())
-        slack_response = {"text":"GetGoals", "attachments":[{"title":"Goals","pretext":"Here are your goals and progress status:","fields":formatted_output,"short":"true","color": "#3AA3E3"}]}
+        slack_response = {"text":input_text, "attachments":[{"title":"Goals","pretext":"Here are your goals and progress status:","fields":formatted_output,"short":"true","color": "#3AA3E3"}]}
     return slack_response
 
 def format_output_for_all_goals(response):
