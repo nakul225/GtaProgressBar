@@ -35,14 +35,19 @@ def process_message(username):
     print "Making query with json body:", json_request_body
     response = requests.post(__get_alfred_url(), headers=headers, data=json_request_body )
     formatted_output = format_output(response.json())
-    slack_response = {"text":"hello", "attachments":[{"text":str(formatted_output),"color": "#3AA3E3"}]}
+    slack_response = {"text":"hello", "attachments":[{"title":"Goals","pretext":"Here are your goals and progress status:","fields":formatted_output,"color": "#3AA3E3"}]}
     return slack_response
 
 def format_output(response):
     goals = response["result"]["response_message"]["goals"]
     goal_names = goals.keys()
-    print goal_names
-    return goal_names
+    result = [] # list of dictionary per goal
+    for goal in goal_names:
+        goal_dict = {}
+        goal_dict["title"]=goals[goal]["name"]
+        goal_dict["value"]=goals[goal]["progress"] + " " + goals[goal]["progress_bar"]
+        result.append(goal_dict)
+    return result
 
 class GoalOutput(object):
     def __init__(self, name, progress_percentage):
