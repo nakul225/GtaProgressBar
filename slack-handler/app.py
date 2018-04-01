@@ -35,14 +35,19 @@ def process_message(username):
     print "Making query with json body:", json_request_body
     response = requests.post(__get_alfred_url(), headers=headers, data=json_request_body )
     print response.json()
-
     if "gg" in input_text:
         if "gg" == input_text:
             formatted_output = format_output_for_all_goals(response.json())
         else:
             formatted_output = format_output_for_specific_goal(response.json())
-        slack_response = {"text":input_text, "attachments":[{"title":"Goals","pretext":"Here are your goals and progress status:","fields":formatted_output,"short":"true","color": "#3AA3E3"}]}
+    else:
+        formatted_output = format_generic_output(response.json())
+    slack_response = {"text":"Command executed: "+input_text, "attachments":[{"title":"Goals","pretext":"Command response:","fields":formatted_output,"short":"true","color": "#3AA3E3"}]}
     return slack_response
+
+def format_generic_output(response):
+    result = response["result"]["response_message"]
+    return "Command probably succeeded, no error found"
 
 def format_output_for_all_goals(response):
     goals = response["result"]["response_message"]["goals"]
