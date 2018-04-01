@@ -34,11 +34,17 @@ def process_message(username):
     json_request_body = json.dumps(get_json_data_for(username,input_text))
     print "Making query with json body:", json_request_body
     response = requests.post(__get_alfred_url(), headers=headers, data=json_request_body )
-    formatted_output = format_output(response.json())
-    slack_response = {"text":"hello", "attachments":[{"title":"Goals","pretext":"Here are your goals and progress status:","fields":formatted_output,"color": "#3AA3E3"}]}
+    print response.json()
+
+    if "gg" in input_text:
+        if "gg" == input_text:
+            formatted_output = format_output_for_all_goals(response.json())
+        else:
+            formatted_output = format_output_for_specific_goal(response.json())
+        slack_response = {"text":"GetGoals", "attachments":[{"title":"Goals","pretext":"Here are your goals and progress status:","fields":formatted_output,"short":"true","color": "#3AA3E3"}]}
     return slack_response
 
-def format_output(response):
+def format_output_for_all_goals(response):
     goals = response["result"]["response_message"]["goals"]
     goal_names = goals.keys()
     result = [] # list of dictionary per goal
@@ -47,6 +53,17 @@ def format_output(response):
         goal_dict["title"]=goals[goal]["name"]
         goal_dict["value"]=goals[goal]["progress"] + " " + goals[goal]["progress_bar"]
         result.append(goal_dict)
+    return result
+
+def format_output_for_specific_goal(response):
+    goals = response["result"]["response_message"]["goals"]
+    name = goals["name"]
+    result = []
+    for step_name in goals["steps"].keys():
+        step_dict = {}
+        step_dict["title"]=step_name
+        step_dict["value"]=str(goals["steps"][step_name]["cost"]) + " " + goals["steps"][step_name]["status"]
+        result.append(step_dict)
     return result
 
 class GoalOutput(object):
